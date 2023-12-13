@@ -12,4 +12,5 @@ print(votes_dict)
 social_choice = Functions(votes_dict)
 result = social_choice.majority_rule()
 
-print(result)
+borda_result = social_choice.borda_count()
+print(borda_result)
