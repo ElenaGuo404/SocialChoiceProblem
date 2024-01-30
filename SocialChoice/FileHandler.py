@@ -7,6 +7,9 @@ class FileHandler:
         self.filename = filename
         self.metadata = {}
         self.data = []
+        self.num_alternatives = 0
+
+        self.extract_information()
 
     # Get data from SOC files
     def extract_information(self):
@@ -21,6 +24,9 @@ class FileHandler:
                     if len(key_value) == 2:
                         key, value = key_value
                         self.metadata[key] = value
+
+                        if key == 'NUMBER ALTERNATIVES':
+                            self.num_alternatives = int(value)
                 else:
                     in_metadata = False
                     if ':' in line:
@@ -43,6 +49,9 @@ class FileHandler:
 
     def get_data(self):
         return self.data
+
+    def get_num_alternatives(self):
+        return self.num_alternatives
 
     def create_dict(self):
         votes_dict = {}
@@ -96,7 +105,7 @@ class FileHandler:
     # file handler to make file become complete.
     def generate_complete_file(self):
 
-        num_alternatives = int(self.metadata.get('NUMBER ALTERNATIVES', 0))
+        num_alternatives = int(self.get_num_alternatives())
         all_alternatives = set(range(1, num_alternatives + 1))
         updated_data = []
 

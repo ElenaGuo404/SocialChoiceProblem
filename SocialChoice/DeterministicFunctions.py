@@ -1,61 +1,58 @@
 class DeterministicFunctions:
     def __init__(self, data_dict):
         self.data_dict = data_dict
+        self.num_candidates = max(len(votes) for votes in self.data_dict.keys())
 
-    def winner(self,scores):
+    def winner(self, scores):
+
         # Find the candidate with the highest score
         winner_candidate = max(scores, key=scores.get)
         winner_score = scores[winner_candidate]
 
         return winner_candidate
 
-    def plurality_rule(self):
-        candidate_counts = {}
+    def scoring_rule(self, weights):
+        scores = {}
 
         for votes, count in self.data_dict.items():
-            first_choice = votes[0]
-            candidate_counts[first_choice] = candidate_counts.get(first_choice, 0) + count
+            for index, candidate in enumerate(votes):
+                scores[candidate] = scores.get(candidate, 0) + (weights[index] * count)
 
-        # winner = max(candidate_counts, key=candidate_counts.get)
-        winner_candidate = self.winner(candidate_counts)
-        return winner_candidate
+        return scores
+
+    def plurality_rule(self):
+
+        # Use the k_approval_rule with k=1 for plurality
+        plurality_points = self.k_approval_rule(1)
+        return plurality_points
 
     def borda_rule(self):
-        borda_count = {}
 
-        for votes, count in self.data_dict.items():
-            num_candidates = len(votes)
-            for index, candidate in enumerate(votes):
-                borda_points = num_candidates - 1 - index
-                borda_count[candidate] = borda_count.get(candidate, 0) + (borda_points * count)
+        # Create a default Borda weights vector
+        weights_vector = [self.num_candidates - 1 - i for i in range(self.num_candidates)]
+        borda_points = self.scoring_rule(weights_vector)
 
-        return borda_count
+        return borda_points
 
     def harmonic_rule(self):
-        harmonic_points = {}
 
-        for votes, count in self.data_dict.items():
-            # num_candidates = len(votes)
-            for index, candidate in enumerate(votes):
-                harmonic_score = 1 / (index + 1)
-                harmonic_points[candidate] = harmonic_points.get(candidate, 0) + (harmonic_score * count)
+        # Create the default harmonic scoring vector
+        harmonic_vector = [1 / (i + 1) for i in range(self.num_candidates)]
+        harmonic_points = self.scoring_rule(harmonic_vector)
 
         return harmonic_points
 
     def k_approval_rule(self, k):
-        k_approval_points = {}
 
-        for votes, count in self.data_dict.items():
-            for index, candidate in enumerate(votes[:k]):
-                k_approval_points[candidate] = k_approval_points.get(candidate, 0) + count
+        # Create a modified weights vector for k-approval
+        weights_vector = [1 if i < k else 0 for i in range(self.num_candidates)]
+        k_approval_points = self.scoring_rule(weights_vector)
 
         return k_approval_points
 
     def veto_rule(self):
-        veto_points = {}
-
-        for votes, count in self.data_dict.items():
-            for index, candidate in enumerate(votes[:-1]):
-                veto_points[candidate] = veto_points.get(candidate, 0) + count
+        # Use the k_approval_rule with k=m-1 for veto, m is the number of alternatives
+        veto_points = self.k_approval_rule(self.num_candidates - 1)
 
         return veto_points
+
