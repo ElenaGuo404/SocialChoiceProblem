@@ -1,5 +1,7 @@
+import ast
 import itertools
 import random
+from collections import OrderedDict
 
 
 class FileHandler:
@@ -11,8 +13,7 @@ class FileHandler:
 
         self.extract_information()
 
-    # Get data from SOC files
-    def extract_information(self):
+    def extract_information2(self):
         with open(self.filename, 'r') as file:
             lines = file.readlines()
 
@@ -44,6 +45,56 @@ class FileHandler:
                     else:
                         in_metadata = True
 
+    def extract_information(self):
+        with open(self.filename, 'r') as file:
+            lines = file.readlines()
+
+            in_metadata = True
+            for line in lines:
+                line = line.strip()
+                if line.startswith('#'):
+                    key_value = line.lstrip('#').strip().split(': ', 1)
+                    if len(key_value) == 2:
+                        key, value = key_value
+                        self.metadata[key] = value
+
+                        if key == 'NUMBER ALTERNATIVES':
+                            self.num_alternatives = int(value)
+                else:
+                    in_metadata = False
+                    if ':' in line:
+                        voter_id, votes = line.split(': ')
+                        voter_id = int(voter_id)
+
+                        # Check if the votes contain sets
+                        if '{' in votes and '}' in votes:
+                            # Combine adjacent sets into a single set with ordered keys
+                            votes = list(self.combine_adjacent_sets(votes))
+                        else:
+                            votes = list(map(int, votes.split(',')))
+
+                        self.data.append((voter_id, votes))
+                    else:
+                        in_metadata = True
+
+    def combine_adjacent_sets(self, votes):
+        combined_set = []
+        current_set = None
+
+        for char in votes:
+            if char == '{':
+                current_set = set()
+            elif char == '}':
+                combined_set.append(tuple(sorted(current_set)))
+                current_set = None
+            elif char.isdigit():
+                if current_set is not None:
+                    current_set.add(int(char))
+                else:
+                    combined_set.append(int(char))
+
+        return OrderedDict.fromkeys(combined_set)
+
     def get_metadata(self):
         return self.metadata
 
@@ -55,20 +106,31 @@ class FileHandler:
 
     def create_dict(self):
         votes_dict = {}
+
         for voter_num, voter_prefer in self.data:
-            key = tuple(voter_prefer)
-            if key in votes_dict:
-                # If the key already exists, add the values
-                votes_dict[key] += voter_num
-            else:
-                # If the key is not present, create a new entry
-                votes_dict[key] = voter_num
+            self.add_entry(votes_dict, voter_prefer, voter_num)
+
         return votes_dict
+
+    def add_entry(self, votes_dict, voter_prefer, voter_num):
+        key = tuple(voter_prefer)
+        if key in votes_dict:
+            # If the key already exists, add the values
+            votes_dict[key] += voter_num
+        else:
+            # If the key is not present, create a new entry
+            votes_dict[key] = voter_num
+
+            # Check if there are sets in the preferences
+            for alt in key:
+                if isinstance(alt, set):
+                    # If an alternative is a set, create additional entries
+                    set_key = frozenset(alt)
+                    self.add_entry(votes_dict, set_key, voter_num)
 
     # file handler to make file become strict - no tie.
     def generate_strict_file(self):
         updated_data = []
-        print(len(self.data))
 
         for voter_id, votes in self.data:
             strict_votes = self.get_strict_order(votes)
@@ -84,20 +146,21 @@ class FileHandler:
 
             # Write updated data
             for voter_id, votes in self.data:
-                file.write(f'{voter_id}: {",".join(map(str, votes))}\n')
+                formatted_votes = [str(alt) if not isinstance(alt, (set, tuple)) else ', '.join(map(str, alt)) for alt
+                                   in
+                                   votes]
+                file.write(f'{voter_id}: {", ".join(formatted_votes)}\n')
 
-    # Helper function for getting strict orders
     def get_strict_order(self, votes):
         strict_votes = []
 
         for alt in votes:
-            if isinstance(alt, set):
-                # If the alternative is a set, append it to the end of the list and randomize the order
-                randomized_ordering = list(itertools.permutations(alt))
-                random.shuffle(randomized_ordering)
-                strict_votes.extend(randomized_ordering[0])
+            if isinstance(alt, (set, tuple)):
+                # If the alternative is a set or tuple, shuffle its elements
+                shuffled_alternative = random.sample(alt, len(alt))
+                strict_votes.extend(shuffled_alternative)
             else:
-                # If the alternative is not a set, keep it in the strict order
+                # If the alternative is not a set or tuple, keep it in the strict order
                 strict_votes.append(alt)
 
         return strict_votes

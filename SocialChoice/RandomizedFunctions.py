@@ -1,15 +1,23 @@
+import random
+
 class RandomizedFunctions:
 
     def __init__(self, data_dict):
         self.data_dict = data_dict
 
-    def winner_probability(self, x):
+    def winner_probability(self):
         total_scores = sum(self.data_dict.values())
 
-        probability_x = self.data_dict.get(x, 0) / total_scores
-        return probability_x
+        # Calculate the probability for each alternative
+        probabilities = {candidate: score / total_scores for candidate, score in self.data_dict.items()}
 
-    def x(self):
+        return probabilities
 
-        return
+    def winner_randomized(self):
+        probabilities = self.winner_probability()
+
+        # Randomly select a winner based on probabilities
+        winner_candidate = random.choices(list(probabilities.keys()), weights=list(probabilities.values()))[0]
+
+        return winner_candidate
 
