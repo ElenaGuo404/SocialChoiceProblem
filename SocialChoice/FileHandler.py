@@ -10,8 +10,10 @@ class FileHandler:
         self.metadata = {}
         self.data = []
         self.num_alternatives = 0
+        self.votes_dict = {}
 
         self.extract_information()
+        self.create_dict()
 
     def extract_information2(self):
         with open(self.filename, 'r') as file:
@@ -105,12 +107,9 @@ class FileHandler:
         return self.num_alternatives
 
     def create_dict(self):
-        votes_dict = {}
 
         for voter_num, voter_prefer in self.data:
-            self.add_entry(votes_dict, voter_prefer, voter_num)
-
-        return votes_dict
+            self.add_entry(self.votes_dict, voter_prefer, voter_num)
 
     def add_entry(self, votes_dict, voter_prefer, voter_num):
         key = tuple(voter_prefer)

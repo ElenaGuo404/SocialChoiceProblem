@@ -4,9 +4,10 @@ from RandomizedFunctions import RandomizedFunctions
 from ValueGeneration import ValueGeneration
 
 file_handler = FileHandler('00004-00000001.soc')
-file_handler.extract_information()
-
-print(file_handler.data)
+# file_handler.extract_information()
+#
+# print(file_handler.data)
+# print(file_handler.num_alternatives)
 
 # file_handler2 = FileHandler('00004-00000001.soc')
 # file_handler2.extract_information2()
@@ -17,11 +18,22 @@ print(file_handler.data)
 
 # file_handler.generate_complete_file()
 
-votes_dict = file_handler.create_dict()
-print(votes_dict)
+votes_dict = file_handler.votes_dict
+print(file_handler.data)
+
+# file_handler.generate_strict_file()
+# print(file_handler.data)
+# print(votes_dict)
 # # print(len(votes_dict))
-value_generation = ValueGeneration(votes_dict,file_handler.get_num_alternatives())
-print(value_generation.value_generation())
+value_generation = ValueGeneration(votes_dict,3)
+print(value_generation.data_dict)
+
+# print(value_generation.num_alternatives)
+# # print(value_generation.generate_complete_file(votes_dict))
+value_generation.value_generation("00004-00000001_values.soc")
+
+print(value_generation.data_dict)
+
 # #
 # # # Example usage of the created dictionary
 
