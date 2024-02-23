@@ -1,8 +1,9 @@
 import hashlib
-import random
 from fractions import Fraction
 from collections import defaultdict
 from collections import Counter
+import numpy as np
+import random
 
 
 class ValueGeneration:
@@ -13,11 +14,11 @@ class ValueGeneration:
         self.missing_alternatives = set()
         self.value_generated = defaultdict(list)
 
-    def value_generation(self, output_filename):
+    def value_generation(self, output_filename,distribution,isMissingZero):
         # Assign values for original alternatives
         values_dict = {}
         for index, (votes, count) in enumerate(self.data_dict.items()):
-            values_func = lambda v=votes: self.assign_values(v, set())
+            values_func = lambda v=votes: self.assign_values(v, self.num_alternatives+1, set(),distribution,isMissingZero)
             values_dict[index] = values_func
 
         # Get missing alternatives for each row
@@ -33,23 +34,41 @@ class ValueGeneration:
                     values = values_dict[index]().copy()
 
                     for missing_alt in missing_alternatives:
-                        values[missing_alt] = Fraction(0)
+                        if isMissingZero:
+                            values[missing_alt] = Fraction(0)
+                        else:
+                            # TO DO
+                            values[missing_alt] = Fraction(0)
 
                     file.write(f'{votes[0]}: {values}\n')
 
                     # Store the generated values for the current ranking
                     self.value_generated[votes].append(values)
 
-    def assign_values(self, votes, missing_alternatives):
+    def assign_values(self, votes, count, missing_alternatives, distribution,isMissingZero):
         values = {}
 
-        random_values = sorted([random.uniform(0, 1) for _ in range(self.num_alternatives + 1)], reverse=True)
+        if distribution == 'uniform':
+            random_values = sorted([random.uniform(0, 1) for _ in range(count)], reverse=True)
+        elif distribution == 'exponential':
+            random_values = sorted(np.random.exponential(size=count), reverse=True)
+        elif distribution == 'normal':
+            random_values = sorted(np.random.normal(size=count), reverse=True)
+        elif distribution == 'power':
+            random_values = sorted(np.random.power(2,size=count), reverse=True)
+        elif distribution == 'gamma':
+            random_values = sorted(np.random.gamma(2, size=count), reverse=True)
+        elif distribution == 'geometric':
+            random_values = sorted(np.random.geometric(0.2, size=count), reverse=True)
+        else:
+            raise ValueError(f"Invalid distribution choice: {distribution}")
+
         flat_votes = [alt if isinstance(alt, int) else list(alt) for alt in votes]
         sorted_votes = sorted(enumerate(flat_votes), key=lambda x: x[0])
 
         for (_, alt), value in zip(sorted_votes, random_values):
             if isinstance(alt, list):
-                # If the alternative is a list (previously a tuple), assign the same value to all elements in the list
+                # assign the same value to all elements in the list
                 for element in alt:
                     values[element] = Fraction(value)
             else:
@@ -57,7 +76,11 @@ class ValueGeneration:
                 values[alt] = Fraction(value)
 
         for missing_alt in missing_alternatives:
-            values[missing_alt] = Fraction(0)
+            if isMissingZero:
+                values[missing_alt] = Fraction(0)
+            else:
+                # TO DO
+                values[missing_alt] = Fraction(0)
 
         return values
 
@@ -119,19 +142,19 @@ class ValueGeneration:
         missing_list = list(missing_alternatives)
         randomized_missing = random.sample(missing_list, len(missing_list))
 
-        # Update the updated_alt based on the original positions
+        # Update based on the original positions
         for alt in missing_alternatives:
             updated_alt[original_positions[alt]] = randomized_missing.pop(0)
 
         return updated_alt
 
+    # Normalization based on the sum of value for each row
     def unit_sum_normalization(self):
         normalized_values = defaultdict(list)
 
         for votes, values_list in self.value_generated.items():
             total_sums = []
 
-            # Sum the values for each alternative in each row of the current ranking
             for values in values_list:
                 total_sum = sum(value for alt, value in values.items())
                 total_sums.append(total_sum)
@@ -145,13 +168,14 @@ class ValueGeneration:
 
         return normalized_values
 
+    # Normalization based on the max value for each row
     def unit_range_normalization(self):
         normalized_values = defaultdict(list)
 
         for votes, values_list in self.value_generated.items():
             max_values = []
 
-            # Find the maximum value for each row of the current ranking
+            # Find the maximum value
             for values in values_list:
                 max_value = max(values.values())
                 max_values.append(max_value)
@@ -164,3 +188,6 @@ class ValueGeneration:
                 normalized_values[votes].append(normalized_values_row)
 
         return normalized_values
+
+
+

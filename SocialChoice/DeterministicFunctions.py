@@ -5,7 +5,6 @@ class DeterministicFunctions:
 
     def winner(self, scores):
 
-        # Find the candidate with the highest score
         winner_candidate = max(scores, key=scores.get)
         winner_score = scores[winner_candidate]
 
@@ -28,7 +27,6 @@ class DeterministicFunctions:
 
     def borda_rule(self):
 
-        # Create a default Borda weights vector
         weights_vector = [self.num_candidates - 1 - i for i in range(self.num_candidates)]
         borda_points = self.scoring_rule(weights_vector)
 
@@ -36,7 +34,6 @@ class DeterministicFunctions:
 
     def harmonic_rule(self):
 
-        # Create the default harmonic scoring vector
         harmonic_vector = [1 / (i + 1) for i in range(self.num_candidates)]
         harmonic_points = self.scoring_rule(harmonic_vector)
 
@@ -44,13 +41,13 @@ class DeterministicFunctions:
 
     def k_approval_rule(self, k):
 
-        # Create a modified weights vector for k-approval
         weights_vector = [1 if i < k else 0 for i in range(self.num_candidates)]
         k_approval_points = self.scoring_rule(weights_vector)
 
         return k_approval_points
 
     def veto_rule(self):
+
         # Use the k_approval_rule with k=m-1 for veto, m is the number of alternatives
         veto_points = self.k_approval_rule(self.num_candidates - 1)
 
