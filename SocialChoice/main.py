@@ -1,61 +1,24 @@
 from FileHandler import FileHandler
-from DeterministicFunctions import DeterministicFunctions
-from RandomizedFunctions import RandomizedFunctions
+from VotingRules import VotingRules
 from ValueGeneration import ValueGeneration
+from Distortion import Distortion
 
 file_handler = FileHandler('00004-00000001.soc')
-# file_handler.extract_information()
-#
-# print(file_handler.data)
-# print(file_handler.num_alternatives)
 
-# file_handler2 = FileHandler('00004-00000001.soc')
-# file_handler2.extract_information2()
-# print(file_handler2.data)
+# Generating Values
+value_generation = ValueGeneration(file_handler.votes_dict, file_handler.num_alternatives)
+value_generation.value_generation("00004-00000001_values.soc", "power", True, 2)
+value_list = value_generation.unit_sum_normalization()
+print(value_list)
 
-# file_handler.generate_complete_file()
-# print(file_handler.data)
+# Applying Scoring Rules
+file_handler.voting_rule_init()
+vr = VotingRules(file_handler.votes_dict, file_handler.num_alternatives)
+veto = vr.veto_rule()
+winner = vr.winner_single(veto)  # or winner = vr.winner_randomized(veto)
+print(veto, 'Winner is', winner)
 
-# file_handler.generate_complete_file()
+# Calculating Distortion
+distortion = Distortion(winner, value_list)
+print(distortion.distortion())
 
-votes_dict = file_handler.votes_dict
-# print(file_handler.data)
-# print(votes_dict)
-
-# file_handler.generate_strict_file()
-# print(file_handler.data)
-# print(votes_dict)
-# # print(len(votes_dict))
-value_generation = ValueGeneration(votes_dict,3)
-# print(value_generation.data_dict)
-
-# print(value_generation.num_alternatives)
-# print(value_generation.generate_complete_file(votes_dict))
-# print(value_generation.make_data_strict(votes_dict))
-value_generation.value_generation("00004-00000001_values.soc","gamma",False)
-#
-print(value_generation.data_dict)
-# print(value_generation.unit_range_normalization())
-
-# # # Example usage of the created dictionary
-
-# #
-# social_choice = DeterministicFunctions(votes_dict)
-#
-# h = social_choice.veto_rule()
-# randomized = RandomizedFunctions(h)
-
-# print(value_generation.value_generation2())
-# socring_rule = social_choice.scoring_rule([1,1,0])
-# result = social_choice.k_approval_rule(2)
-#
-
-
-# print(h)
-#
-# print(randomized.winner_probability())
-# print(randomized.winner_randomized())
-# print(result)
-#
-# borda_result = social_choice.borda_count()
-# print(borda_result)

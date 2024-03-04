@@ -1,68 +1,109 @@
-import hashlib
-from fractions import Fraction
-from collections import defaultdict
-from collections import Counter
 import numpy as np
 import random
+from typing import List
+from collections import defaultdict
 
 
 class ValueGeneration:
+    """
+    Generates values for voting data based on various distributions and normalization methods.
+    Values are randomly generated and alternative with lower ranking must have smaller values.
+    Values are generated for each voter's choice (allow repetition of ranking ballot).
+
+    Attributes:
+    - data_dict (dict): A dictionary containing voting data.
+    - strict_data_dict (dict): A dictionary with strict ordering of alternatives and corresponding data.
+    - num_alternatives (int): The total number of alternatives participated.
+    - missing_alternatives (set): A set containing missing alternatives.
+    - value_list (defaultdict): A defaultdict storing generated values for each ranking.
+
+    Methods:
+    - value_generation(output_filename, distribution, is_missing_zero, power_param=2): Generates values for voting data.
+    - assign_values(votes, count, distribution, power_param): Assigns values to alternatives based alternative ranking.
+    - generate_random_values(count, distribution, power_param, upper_limit): Generates random values based on a distribution.
+    - make_data_strict(data_dict): Generates a strict ordering for the given voting data.
+    - get_strict_order(alt): Gets a strict order for the given alternative.
+    - update_data_with_missing(): Updates each ranking ballot with corresponding missing alternatives.
+    - randomize_missing(updated_alt, missing_alternatives): Randomly sample the missing alternative's position in the ballot
+    - unit_sum_normalization(): Normalizes values based on the sum of values for each data row.
+    - unit_range_normalization(): Normalizes values based on the max value for each data row.
+    """
     def __init__(self, data_dict, num_alternatives):
         self.data_dict = data_dict
-        self.original_data_dict = data_dict
+        self.strict_data_dict = data_dict
         self.num_alternatives = num_alternatives
         self.missing_alternatives = set()
-        self.value_generated = defaultdict(list)
+        self.value_list = defaultdict(list)
 
-    def value_generation(self, output_filename,distribution,isMissingZero):
+    """
+    Generates values for voting data based on user choices and writes them to an output file.
+    
+    Parameters:
+    - output_filename (str): The name of the output file.
+    - distribution (str): The distribution used to generate values ('uniform', 'exponential', 'normal', 'power', 'gamma', 'geometric').
+    - is_missing_zero (bool): Whether missing alternatives should be assigned a value of zero. If false, assign it with random value.
+    - power_param (float): Power parameter used in some distributions (default is 2). Detail of choice is explain in generate_random_values(). 
+    """
+    def value_generation(self, output_filename, distribution, is_missing_zero, power_param=2):
         # Assign values for original alternatives
         values_dict = {}
         for index, (votes, count) in enumerate(self.data_dict.items()):
-            values_func = lambda v=votes: self.assign_values(v, self.num_alternatives+1, set(),distribution,isMissingZero)
+            values_func = lambda v=votes: self.assign_values(v, self.num_alternatives + 1, distribution,power_param)
             values_dict[index] = values_func
 
         # Get missing alternatives for each row
         missing_alternatives_dict = self.update_data_with_missing()
 
         with open(output_filename, 'w') as file:
-            for votes, count in self.data_dict.items():
+            for votes, count in self.strict_data_dict.items():
+
                 # Get missing alternatives for the current row
                 missing_alternatives = missing_alternatives_dict.get(votes, set())
 
                 for _ in range(count):
-                    index = list(self.data_dict.keys()).index(votes)
+                    index = list(self.strict_data_dict.keys()).index(votes)
                     values = values_dict[index]().copy()
 
-                    for missing_alt in missing_alternatives:
-                        if isMissingZero:
-                            values[missing_alt] = Fraction(0)
-                        else:
-                            # TO DO
-                            values[missing_alt] = Fraction(0)
+                    if missing_alternatives:
+
+                        # get random value dataset
+                        values_list = list(values.items())
+                        upper_limit = values_list[len(values) - 1][1]
+                        random_value = self.generate_random_values(len(missing_alternatives), distribution, power_param, upper_limit)
+                        random_value = sorted(random_value, reverse=True)
+
+                        for missing_alt in missing_alternatives:
+                            if is_missing_zero:
+                                values[missing_alt] = 0
+
+                            # Assgin with random value draw from same distribution,
+                            # but the value mnust be smaller than the alternative who originally is in the ranking ballot.
+                            else:
+                                values[missing_alt] = random_value[0]
+                                random_value.remove(random_value[0])
 
                     file.write(f'{votes[0]}: {values}\n')
 
                     # Store the generated values for the current ranking
-                    self.value_generated[votes].append(values)
+                    self.value_list[votes].append(values)
 
-    def assign_values(self, votes, count, missing_alternatives, distribution,isMissingZero):
+    """
+    Assigns values to alternatives based on alternative ranking.
+    For alternative with tie (in same list), assign with same value. 
+    Higher the ranking, higher the value assigned to it. 
+    
+    Parameters:
+    - votes: The preferences for a voter.
+    - count: The number of alternatives.
+    - distribution (str): The distribution used to generate values.
+    - power_param (float): Power parameter used in some distributions.
+    
+    Returns:
+    dict: A dictionary mapping alternatives to generated values.
+    """
+    def assign_values(self, votes, count, distribution, power_param):
         values = {}
-
-        if distribution == 'uniform':
-            random_values = sorted([random.uniform(0, 1) for _ in range(count)], reverse=True)
-        elif distribution == 'exponential':
-            random_values = sorted(np.random.exponential(size=count), reverse=True)
-        elif distribution == 'normal':
-            random_values = sorted(np.random.normal(size=count), reverse=True)
-        elif distribution == 'power':
-            random_values = sorted(np.random.power(2,size=count), reverse=True)
-        elif distribution == 'gamma':
-            random_values = sorted(np.random.gamma(2, size=count), reverse=True)
-        elif distribution == 'geometric':
-            random_values = sorted(np.random.geometric(0.2, size=count), reverse=True)
-        else:
-            raise ValueError(f"Invalid distribution choice: {distribution}")
-
+        random_values = self.generate_random_values(count, distribution, power_param)
         flat_votes = [alt if isinstance(alt, int) else list(alt) for alt in votes]
         sorted_votes = sorted(enumerate(flat_votes), key=lambda x: x[0])
 
@@ -70,21 +111,70 @@ class ValueGeneration:
             if isinstance(alt, list):
                 # assign the same value to all elements in the list
                 for element in alt:
-                    values[element] = Fraction(value)
+                    values[element] = value
             else:
                 # If the alternative is not a list, assign the value based on the original ranking
-                values[alt] = Fraction(value)
-
-        for missing_alt in missing_alternatives:
-            if isMissingZero:
-                values[missing_alt] = Fraction(0)
-            else:
-                # TO DO
-                values[missing_alt] = Fraction(0)
+                values[alt] = value
 
         return values
 
-    # Generate strict order for giving data
+    """
+    Generates random values based on a specified distribution and power_param.
+    
+    Parameters:
+    - count (int): The number of random values need to generate.
+    - distribution (str): The type of distribution used to generate values.
+    - power_param (float): Power parameter used in some distributions.
+    - upper_limit: The upper limit for the generated values.
+    
+    Returns:
+    List[float]: A list of generated random values.
+    """
+
+    def generate_random_values(self, count, distribution, power_param, upper_limit=None) -> List[float]:
+        random_values = []
+
+        if distribution == 'uniform':
+            random_values = sorted([random.uniform(0, 1) for _ in range(count)], reverse=True)
+        elif distribution == 'exponential':
+            random_values = sorted(np.random.exponential(size=count), reverse=True)
+        elif distribution == 'normal':
+            random_values = sorted(np.random.normal(size=count), reverse=True)
+
+        # Draws samples in [0, 1] from a power distribution with positive exponent power_param - 1
+        elif distribution == 'power':
+            random_values = sorted(np.random.power(power_param, size=count), reverse=True)
+
+        # Draw samples from a Gamma distribution. The power_param is the shape, must be non-negative.
+        elif distribution == 'gamma':
+            random_values = sorted(np.random.gamma(power_param, size=count), reverse=True)
+
+        # Draw samples from the geometric distribution. The power_param is probability of success of an individual trial.
+        elif distribution == 'geometric':
+            random_values = sorted(np.random.geometric(power_param/10, size=count), reverse=True)
+
+        else:
+            raise ValueError(f"Invalid distribution choice: {distribution}")
+
+        if upper_limit is not None:
+            # Cap the generated values to the specified upper limit
+            for value in random_values:
+                if value > upper_limit or value == upper_limit:
+                    random_values.remove(value)
+                    value = self.generate_random_values(1, distribution, upper_limit)
+                    random_values.append(value[0])
+
+        return random_values
+
+    """
+    Generates a strict ordering for the given voting data.
+    
+    Parameters:
+    - data_dict (dict): A dictionary containing voting data.
+    
+    Returns:
+    dict: A dictionary with strict ordering of alternatives.
+    """
     def make_data_strict(self, data_dict):
         updated_data_dict = {}
 
@@ -95,6 +185,15 @@ class ValueGeneration:
 
         return updated_data_dict
 
+    """
+    Gets a strict order for the given alternative.
+    
+    Parameters:
+    - alt: The alternative for which to get a strict order.
+    
+    Returns:
+    List: A list containing the strict order of the alternative.
+    """
     def get_strict_order(self, alt):
         strict_alt = []
 
@@ -107,16 +206,21 @@ class ValueGeneration:
 
         return strict_alt
 
-    # Update the missing alternative set for each row. if no missing, no return
+    """
+    Updates each ranking ballot with corresponding missing alternatives.
+    
+    Returns:
+    dict: A dictionary containing missing alternatives for each row.
+    """
     def update_data_with_missing(self):
-        self.data_dict = self.make_data_strict(self.data_dict)
+        self.strict_data_dict = self.make_data_strict(self.data_dict)
 
         num_alternatives = self.num_alternatives
         all_alternatives = set(range(1, num_alternatives + 1))
         updated_data_dict = {}
         missing_alternatives_dict = {}
 
-        for ((alt, index), count) in self.data_dict.items():
+        for ((alt, index), count) in self.strict_data_dict.items():
             missing_alternatives = all_alternatives - set(alt)
 
             if missing_alternatives:
@@ -131,11 +235,20 @@ class ValueGeneration:
                 key = (alt, index)
                 updated_data_dict[key] = count
 
-        self.data_dict = updated_data_dict
+        self.strict_data_dict = updated_data_dict
 
         return missing_alternatives_dict
 
-    # Helper function to shifting giving alternative set
+    """
+    Randomly sample the missing alternative's position in the ballot
+    
+    Parameters:
+    - updated_alt (list): The ranking ballot.
+    - missing_alternatives (set): The set of missing alternatives.
+    
+    Returns:
+    list: The updated alternative with randomized missing alternatives.
+    """
     def randomize_missing(self, updated_alt, missing_alternatives):
         original_positions = {alt: i for i, alt in enumerate(updated_alt)}
 
@@ -148,11 +261,16 @@ class ValueGeneration:
 
         return updated_alt
 
-    # Normalization based on the sum of value for each row
+    """
+    Normalizes values based on the sum of values for each row.
+    
+    Returns:
+    defaultdict: A defaultdict storing normalized values for each ranking.
+    """
     def unit_sum_normalization(self):
         normalized_values = defaultdict(list)
 
-        for votes, values_list in self.value_generated.items():
+        for votes, values_list in self.value_list.items():
             total_sums = []
 
             for values in values_list:
@@ -168,11 +286,16 @@ class ValueGeneration:
 
         return normalized_values
 
-    # Normalization based on the max value for each row
+    """
+    Normalizes values based on the max value (usually is the value of alternative with index 0) for each row.
+    
+    Returns:
+    defaultdict: A defaultdict storing normalized values for each ranking.
+    """
     def unit_range_normalization(self):
         normalized_values = defaultdict(list)
 
-        for votes, values_list in self.value_generated.items():
+        for votes, values_list in self.value_list.items():
             max_values = []
 
             # Find the maximum value
@@ -188,6 +311,3 @@ class ValueGeneration:
                 normalized_values[votes].append(normalized_values_row)
 
         return normalized_values
-
-
-

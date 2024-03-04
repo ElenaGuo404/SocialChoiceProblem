@@ -1,13 +1,37 @@
-import ast
-import itertools
 import random
 from collections import OrderedDict
 
 
 class FileHandler:
+    """
+    Handles the processing and manipulation of a single data file.
+
+    Attributes:
+    - filename (str): The name of the input file.
+    - metadata (dict): A dictionary containing metadata(all information) extracted from the file.
+    - original_data (list): A list containing the original rank ballot with corresponding number of voters who support this ballot as tuples.
+    - data (list): A list containing the same data as original_data, but used for later data manipulation.
+    - num_alternatives (int): The total number of alternatives participated.
+    - votes_dict (dict): A dictionary representation of the voting data.
+
+    Methods:
+    - voting_rule_init(): Calling required methods to ensure the data is ready for VotingRules.
+    - extract_information(): Extracts metadata and original data from the input file.
+    - combine_adjacent_sets(votes): Combines adjacent sets in the votes string.
+    - get_metadata(): Returns the metadata extracted from the file.
+    - get_data(): Returns the voter data after extraction and processing.
+    - get_num_alternatives(): Returns the total number of alternatives.
+    - create_dict(): Creates a dictionary representation of the voting data.Key is ranking ballot and value is count.
+    - add_entry(votes_dict, voter_prefer, voter_num): Adds an entry to the voting data dictionary.
+    - generate_strict_file(): Converts the file to a strict order file (no ties between alternatives).
+    - get_strict_order(votes): Gets the strict order for alternatives from the votes.
+    - generate_complete_file(): Converts the file to a complete order file.
+    - randomize_missing(updated_votes, missing_alternatives): Randomly sample the missing alternative's position in the ballot
+    """
     def __init__(self, filename):
         self.filename = filename
         self.metadata = {}
+        self.original_data = []
         self.data = []
         self.num_alternatives = 0
         self.votes_dict = {}
@@ -15,7 +39,17 @@ class FileHandler:
         self.extract_information()
         self.create_dict()
 
+    """
+    Calling required methods to ensure the data is ready for VotingRules.
+    """
+    def voting_rule_init(self):
+        self.generate_strict_file()
+        self.generate_complete_file()
+        self.create_dict()
 
+    """
+    Extracts metadata and original data from the input file.    
+    """
     def extract_information(self):
         with open(self.filename, 'r') as file:
             lines = file.readlines()
@@ -43,10 +77,20 @@ class FileHandler:
                         else:
                             votes = list(map(int, votes.split(',')))
 
-                        self.data.append((voter_id, votes))
+                        self.original_data.append((voter_id, votes))
                     else:
                         in_metadata = True
+        self.data = self.original_data
 
+    """
+    Combines adjacent sets in the votes string.
+    
+    Parameters:
+    - votes (str): The votes string.
+    
+    Returns:
+    OrderedDict: A dictionary representation of combined sets.
+    """
     def combine_adjacent_sets(self, votes):
         combined_set = []
         current_set = None
@@ -65,20 +109,50 @@ class FileHandler:
 
         return OrderedDict.fromkeys(combined_set)
 
+    """
+    Returns the metadata extracted from the file.
+    
+    Returns:
+    dict: A dictionary containing metadata.
+    """
     def get_metadata(self):
         return self.metadata
 
+    """
+    Returns the voter data after extraction and processing.
+    
+    Returns:
+    list: A list containing voter data as tuples.
+    """
     def get_data(self):
         return self.data
 
+    """
+    Returns the total number of alternatives.
+    
+    Returns:
+    int: The total number of alternatives.
+    """
     def get_num_alternatives(self):
         return self.num_alternatives
 
+    """
+    Creates a dictionary representation of the voting data.Key is ranking ballot and value is count.
+    """
     def create_dict(self):
+        self.votes_dict = {}
 
         for voter_num, voter_prefer in self.data:
             self.add_entry(self.votes_dict, voter_prefer, voter_num)
 
+    """
+    Adds an entry to the voting data dictionary.
+
+    Parameters:
+    - votes_dict (dict): The voting data dictionary.
+    - voter_prefer: The voter's preferences (ranking ballot).
+    - voter_num (int): The number of voters.
+    """
     def add_entry(self, votes_dict, voter_prefer, voter_num):
         key = tuple(voter_prefer)
 
@@ -93,7 +167,9 @@ class FileHandler:
                     set_key = frozenset(alt)
                     self.add_entry(votes_dict, set_key, voter_num)
 
-    # file handler to make file become strict - no tie.
+    """
+    Converts the file to a strict order file (no ties between alternatives).
+    """
     def generate_strict_file(self):
         updated_data = []
 
@@ -103,16 +179,15 @@ class FileHandler:
 
         self.data = updated_data
 
-        # Update the content of the file
-        with open(self.filename, 'w') as file:
+    """
+   Gets the strict order for alternatives from the votes.
 
-            for key, value in self.metadata.items():
-                file.write(f'# {key}: {value}\n')
+    Parameters:
+    - votes (list): The ranking ballot.
 
-            for voter_id, votes in self.data:
-                formatted_votes = [str(alt) if not isinstance(alt, (set, tuple)) else ', '.join(map(str, alt)) for alt in votes]
-                file.write(f'{voter_id}: {", ".join(formatted_votes)}\n')
-
+    Returns:
+    list: The strict order of ranking (no alternatives are inside a set).
+    """
     def get_strict_order(self, votes):
         strict_votes = []
 
@@ -126,7 +201,9 @@ class FileHandler:
 
         return strict_votes
 
-    # file handler to make file become complete.
+    """
+    Converts the file to a complete order file.
+    """
     def generate_complete_file(self):
 
         num_alternatives = int(self.get_num_alternatives())
@@ -147,15 +224,16 @@ class FileHandler:
 
         self.data = updated_data
 
-        with open(self.filename, 'w') as file:
-
-            for key, value in self.metadata.items():
-                file.write(f'# {key}: {value}\n')
-
-            for voter_id, votes in self.data:
-                file.write(f'{voter_id}: {",".join(map(str, votes))}\n')
-
-    # Helper functions to get randomized alternatives.
+    """
+    Randomly sample the missing alternative's position in the ballot
+    
+    Parameters:
+    - updated_votes (list): The ranking ballot.
+    - missing_alternatives (set): The set of missing alternatives.
+    
+    Returns:
+    list: The updated ranking ballot.
+    """
     def randomize_missing(self, updated_votes, missing_alternatives):
 
         missing_list = list(missing_alternatives)
