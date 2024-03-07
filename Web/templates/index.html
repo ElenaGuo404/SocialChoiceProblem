@@ -1,0 +1,629 @@
+<!--<!DOCTYPE html>-->
+<!--<html lang="en">-->
+<!--<head>-->
+<!--    <meta charset="UTF-8">-->
+<!--    <meta name="viewport" content="width=device-width, initial-scale=1.0">-->
+<!--    <title>File Handler and Value Generation</title>-->
+<!--    <style>-->
+<!--        body {-->
+<!--            display: flex;-->
+<!--            flex-direction: column;-->
+<!--            align-items: stretch;-->
+<!--            margin: 0;-->
+<!--            height: 100vh;-->
+<!--        }-->
+
+<!--        .container {-->
+<!--            text-align: center;-->
+<!--            margin: 10px;-->
+<!--        }-->
+
+<!--        .flex-container {-->
+<!--            display: flex;-->
+<!--            justify-content: space-between;-->
+<!--            flex-grow: 1;-->
+<!--            align-items: stretch;-->
+<!--            margin: 10px;-->
+<!--        }-->
+
+<!--        .left-container {-->
+<!--            flex-grow: 1;-->
+<!--            display: flex;-->
+<!--            flex-direction: column;-->
+<!--            align-items: stretch;-->
+<!--        }-->
+
+<!--        #messages {-->
+<!--            margin-top: 20px;-->
+<!--        }-->
+
+<!--        #fixedTable {-->
+<!--            border: 1px solid #ccc;-->
+<!--            padding: 10px;-->
+<!--            max-height: 300px; /* Adjust the maximum height as needed */-->
+<!--            overflow-y: auto;-->
+<!--        }-->
+
+<!--        .fileHandler-container, .votingRules-container, .distortion-container {-->
+<!--            width: 200px;-->
+<!--            margin: 20px;-->
+<!--        }-->
+<!--    </style>-->
+<!--</head>-->
+<!--<body>-->
+<!--    <div class="flex-container">-->
+<!--        <div class="left-container">-->
+
+<!--            <div class="container">-->
+<!--                <h1>Fixed Table</h1>-->
+<!--                <div id="fixedTable">-->
+<!--                    &lt;!&ndash; Placeholder for the fixed table &ndash;&gt;-->
+<!--                    &lt;!&ndash; Content will be dynamically updated using JavaScript &ndash;&gt;-->
+<!--                </div>-->
+<!--            </div>-->
+
+<!--            <div class="container">-->
+<!--                <form method="post" action="/value_generation" id="valueForm">-->
+<!--                    <h1>Value Generation</h1>-->
+
+<!--                    <label for="is_missing_zero">Is Missing Zero:</label>-->
+<!--                    <select name="is_missing_zero" id="is_missing_zero" required>-->
+<!--                        <option value="True">True</option>-->
+<!--                        <option value="False">False</option>-->
+<!--                    </select>-->
+
+<!--                    <br>-->
+
+<!--                    <label for="distribution">Distribution:</label>-->
+<!--                    <select name="distribution" id="distribution" required>-->
+<!--                        <option value="uniform">Uniform</option>-->
+<!--                        <option value="exponential">Exponential</option>-->
+<!--                        <option value="normal">Normal</option>-->
+<!--                        <option value="power">Power</option>-->
+<!--                        <option value="gamma">Gamma</option>-->
+<!--                        <option value="geometric">Geometric</option>-->
+<!--                    </select>-->
+
+<!--                    <br>-->
+
+<!--                    <label for="output_filename">Output Filename:</label>-->
+<!--                    <input type="text" name="output_filename" id="output_filename" required>-->
+
+<!--                    <br>-->
+
+<!--                    <label for="power_param">Power Parameter:</label>-->
+<!--                    <input type="number" name="power_param" id="power_param" required>-->
+
+<!--                    <br>-->
+
+<!--                    <label for="normalization_method">Normalization Method:</label>-->
+<!--                    <select name="normalization_method" id="normalization_method" required>-->
+<!--                        <option value="unit_sum">Unit Sum</option>-->
+<!--                        <option value="unit_range">Unit Range</option>-->
+<!--                    </select>-->
+
+<!--                    <br>-->
+
+<!--                    <button type="submit">Generate Values</button>-->
+<!--                </form>-->
+<!--            </div>-->
+
+<!--            <div class="container votingRules-container">-->
+<!--                <form method="post" action="/voting_rules" id="votingRulesForm">-->
+<!--                    <h1>Voting Rules</h1>-->
+
+<!--                    <label for="voting_rule_choices">Voting Rule:</label>-->
+<!--                    <select name="voting_rule_choices" id="voting_rule_choices" required>-->
+<!--                        <option value="plurality_rule">Plurality Rule</option>-->
+<!--                        <option value="borda_rule">Borda Rule</option>-->
+<!--                        <option value="harmonic_rule">Harmonic Rule</option>-->
+<!--                        <option value="k_approval_rule">k-Approval Rule</option>-->
+<!--                        <option value="veto_rule">Veto Rule</option>-->
+<!--                        <option value="scoring_rule">Scoring Rule</option>-->
+<!--                    </select>-->
+
+<!--                    <br>-->
+
+<!--                    <label for="k_approval_value" id="k_approval_label" style="display: none;">k-Approval Value:</label>-->
+<!--                    <input type="number" name="k_approval_value" id="k_approval_value" style="display: none;">-->
+
+<!--                    <br>-->
+
+<!--                    <label for="scoring_rule_input" id="scoring_rule_label" style="display: none;">Scoring Rule Input:</label>-->
+<!--                    <input type="text" name="scoring_rule_input" id="scoring_rule_input" style="display: none;">-->
+
+<!--                    <br>-->
+
+<!--                    <button type="submit">Apply Voting Rule</button>-->
+<!--                </form>-->
+<!--            </div>-->
+
+<!--            <div class="container">-->
+<!--                <form method="post" action="/make_file_complete_strict" id="makeFileCompleteStrictForm">-->
+<!--                    <h1>Make File Complete and Strict</h1>-->
+<!--                    <button type="submit">Make File Complete and Strict</button>-->
+<!--                </form>-->
+<!--            </div>-->
+
+<!--            <div class="container distortion-container">-->
+<!--                <form method="post" action="/distortion" id="distortionForm">-->
+<!--                    <h1>Distortion</h1>-->
+
+<!--                    <label for="distortion_type">Distortion Type:</label>-->
+<!--                    <select name="distortion_type" id="distortion_type" required>-->
+<!--                        <option value="deterministic">Deterministic</option>-->
+<!--                        <option value="randomize">Randomize</option>-->
+<!--                    </select>-->
+
+<!--                    <br>-->
+
+<!--                    <label for="k_value" id="k_value_label" style="display: none;">k Value:</label>-->
+<!--                    <input type="number" name="k_value" id="k_value" style="display: none;">-->
+
+<!--                    <br>-->
+
+<!--                    <button type="submit">Apply Distortion</button>-->
+<!--                </form>-->
+
+<!--                <div id="distortionMessages"></div>-->
+<!--            </div>-->
+<!--        </div>-->
+
+<!--        <div class="fileHandler-container container">-->
+<!--            <form method="post" action="/handle_file" enctype="multipart/form-data" id="fileForm">-->
+<!--                <h1>File Handler</h1>-->
+<!--                <label for="file_input">Choose a file:</label>-->
+<!--                <br>-->
+<!--                <input type="file" name="file_input" id="file_input" required>-->
+<!--                <br>-->
+<!--                <button type="submit">Upload</button>-->
+<!--            </form>-->
+<!--            <div id="fileHandlerMessages"></div>-->
+<!--        </div>-->
+<!--    </div>-->
+
+<!--    <div id="messages"></div>-->
+
+<!--    <script>-->
+<!--        document.addEventListener('DOMContentLoaded', function () {-->
+<!--            // File Handler form submission-->
+<!--            document.getElementById('fileForm').addEventListener('submit', function (event) {-->
+<!--                event.preventDefault();-->
+<!--                var formData = new FormData(this);-->
+<!--                fetch('/handle_file', {-->
+<!--                    method: 'POST',-->
+<!--                    body: formData-->
+<!--                })-->
+<!--                .then(response => response.json())-->
+<!--                .then(data => {-->
+<!--                    document.getElementById('fileHandlerMessages').innerText = data.message;-->
+<!--                });-->
+<!--            });-->
+
+<!--            // Value Generation form submission-->
+<!--            document.getElementById('valueForm').addEventListener('submit', function (event) {-->
+<!--                event.preventDefault();-->
+<!--                var formData = new FormData(this);-->
+<!--                fetch('/value_generation', {-->
+<!--                    method: 'POST',-->
+<!--                    body: formData-->
+<!--                })-->
+<!--                .then(response => response.json())-->
+<!--                .then(data => {-->
+<!--                    document.getElementById('messages').innerText = data.message;-->
+<!--                    // Update the fixed table content here using data-->
+<!--                    document.getElementById('fixedTable').innerText = 'Generated values: ' + data.message;-->
+<!--                });-->
+<!--            });-->
+
+<!--            // Voting Rules form submission-->
+<!--            document.getElementById('votingRulesForm').addEventListener('submit', function (event) {-->
+<!--                event.preventDefault();-->
+<!--                var formData = new FormData(this);-->
+<!--                fetch('/voting_rules', {-->
+<!--                    method: 'POST',-->
+<!--                    body: formData-->
+<!--                })-->
+<!--                .then(response => response.json())-->
+<!--                .then(data => {-->
+<!--                    document.getElementById('messages').innerText = data.message;-->
+<!--                });-->
+<!--            });-->
+
+<!--            // Make File Complete and Strict form submission-->
+<!--            document.getElementById('makeFileCompleteStrictForm').addEventListener('submit', function (event) {-->
+<!--                event.preventDefault();-->
+<!--                fetch('/make_file_complete_strict', {-->
+<!--                    method: 'POST'-->
+<!--                })-->
+<!--                .then(response => response.json())-->
+<!--                .then(data => {-->
+<!--                    document.getElementById('messages').innerText = data.message;-->
+<!--                });-->
+<!--            });-->
+
+<!--            // Show/hide k-Approval input based on the selected voting rule-->
+<!--            document.getElementById('voting_rule_choices').addEventListener('change', function () {-->
+<!--                var kApprovalLabel = document.getElementById('k_approval_label');-->
+<!--                var kApprovalInput = document.getElementById('k_approval_value');-->
+<!--                if (this.value === 'k_approval_rule') {-->
+<!--                    kApprovalLabel.style.display = 'block';-->
+<!--                    kApprovalInput.style.display = 'block';-->
+<!--                } else {-->
+<!--                    kApprovalLabel.style.display = 'none';-->
+<!--                    kApprovalInput.style.display = 'none';-->
+<!--                }-->
+<!--            });-->
+
+<!--            // Show/hide scoring rule input based on the selected voting rule-->
+<!--            document.getElementById('voting_rule_choices').addEventListener('change', function () {-->
+<!--                var scoringRuleLabel = document.getElementById('scoring_rule_label');-->
+<!--                var scoringRuleInput = document.getElementById('scoring_rule_input');-->
+<!--                if (this.value === 'scoring_rule') {-->
+<!--                    scoringRuleLabel.style.display = 'block';-->
+<!--                    scoringRuleInput.style.display = 'block';-->
+<!--                } else {-->
+<!--                    scoringRuleLabel.style.display = 'none';-->
+<!--                    scoringRuleInput.style.display = 'none';-->
+<!--                }-->
+<!--            });-->
+
+<!--            // Show/hide k-value input based on the selected distortion type-->
+<!--            document.getElementById('distortion_type').addEventListener('change', function () {-->
+<!--                var kValueLabel = document.getElementById('k_value_label');-->
+<!--                var kValueInput = document.getElementById('k_value');-->
+<!--                if (this.value === 'randomize') {-->
+<!--                    kValueLabel.style.display = 'block';-->
+<!--                    kValueInput.style.display = 'block';-->
+<!--                } else {-->
+<!--                    kValueLabel.style.display = 'none';-->
+<!--                    kValueInput.style.display = 'none';-->
+<!--                }-->
+<!--            });-->
+
+<!--            // Distortion form submission-->
+<!--            document.getElementById('distortionForm').addEventListener('submit', function (event) {-->
+<!--                event.preventDefault();-->
+<!--                var formData = new FormData(this);-->
+<!--                fetch('/distortion', {-->
+<!--                    method: 'POST',-->
+<!--                    body: formData-->
+<!--                })-->
+<!--                .then(response => response.json())-->
+<!--                .then(data => {-->
+<!--                    document.getElementById('distortionMessages').innerText = data.message;-->
+<!--                });-->
+<!--            });-->
+
+<!--        });-->
+<!--    </script>-->
+<!--</body>-->
+<!--</html>-->
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Handler and Value Generation</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+            margin: 0;
+            height: 100vh;
+            background-color: #f4f4f4;
+        }
+
+        .container {
+            text-align: center;
+            margin: 10px;
+        }
+
+        .section-container {
+            margin: 40px;
+            padding: 20px;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .flex-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: stretch;
+            margin: 10px;
+        }
+
+        .left-container {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        #fixedTable {
+            border: 1px solid #ccc;
+            padding: 10px;
+            max-height: 300px;
+            overflow-y: auto;
+            width: 50%;
+            align-self: flex-end;
+            box-sizing: border-box; /* Include padding and border in the element's total width */
+        }
+
+        .fileHandler-container, .valueGeneration-container, .votingRules-container, .makeFileStrict-container, .distortion-container {
+            width: 100%;
+            margin-bottom: 20px;
+        }
+
+        .makeFileStrict-container {
+            align-self: flex-end;
+            margin-left: 20px;
+        }
+
+        .distortion-container {
+            align-self: center;
+        }
+
+        .votingRules-container {
+            width: 100%;
+            margin-bottom: 20px;
+            align-self: flex-start;
+        }
+    </style>
+</head>
+<body>
+    <div class="flex-container">
+        <!-- File Handler Section -->
+        <div class="fileHandler-container section-container">
+            <form method="post" action="/handle_file" enctype="multipart/form-data" id="fileForm">
+                <h1>File Handler</h1>
+                <label for="file_input">Choose a file:</label>
+                <br>
+                <input type="file" name="file_input" id="file_input" required>
+                <br>
+                <button type="submit">Upload</button>
+            </form>
+            <div id="fileHandlerMessages"></div>
+        </div>
+
+        <!-- Value Generation Section -->
+        <div class="valueGeneration-container section-container">
+            <form method="post" action="/value_generation" id="valueForm">
+
+                <h1>Value Generation</h1>
+                    <label for="is_missing_zero">Is Missing Zero:</label>
+                    <select name="is_missing_zero" id="is_missing_zero" required>
+                        <option value="True">True</option>
+                        <option value="False">False</option>
+                    </select>
+
+                    <br>
+
+                    <label for="distribution">Distribution:</label>
+                    <select name="distribution" id="distribution" required>
+                        <option value="uniform">Uniform</option>
+                        <option value="exponential">Exponential</option>
+                        <option value="normal">Normal</option>
+                        <option value="power">Power</option>
+                        <option value="gamma">Gamma</option>
+                        <option value="geometric">Geometric</option>
+                    </select>
+
+                    <br>
+
+                    <label for="output_filename">Output Filename:</label>
+                    <input type="text" name="output_filename" id="output_filename" required>
+
+                    <br>
+
+                    <label for="power_param">Power Parameter:</label>
+                    <input type="number" name="power_param" id="power_param" required>
+
+                    <br>
+
+                    <label for="normalization_method">Normalization Method:</label>
+                    <select name="normalization_method" id="normalization_method" required>
+                        <option value="unit_sum">Unit Sum</option>
+                        <option value="unit_range">Unit Range</option>
+                    </select>
+
+                    <br>
+
+                    <button type="submit">Generate Values</button>
+            </form>
+            <div id="valueGenerationMessages"></div>
+        </div>
+
+        <!-- Voting Rules Section -->
+        <div class="votingRules-container section-container">
+            <form method="post" action="/voting_rules" id="votingRulesForm">
+
+                <h1>Voting Rules</h1>
+                <label for="voting_rule_choices">Voting Rule:</label>
+                <select name="voting_rule_choices" id="voting_rule_choices" required>
+                    <option value="plurality_rule">Plurality Rule</option>
+                    <option value="borda_rule">Borda Rule</option>
+                    <option value="harmonic_rule">Harmonic Rule</option>
+                    <option value="k_approval_rule">k-Approval Rule</option>
+                    <option value="veto_rule">Veto Rule</option>
+                    <option value="scoring_rule">Scoring Rule</option>
+                </select>
+
+                <br>
+
+                <label for="k_approval_value" id="k_approval_label" style="display: none;">k-Approval Value:</label>
+                <input type="number" name="k_approval_value" id="k_approval_value" style="display: none;">
+
+                <br>
+
+                <label for="scoring_rule_input" id="scoring_rule_label" style="display: none;">Scoring Rule Input:</label>
+                <input type="text" name="scoring_rule_input" id="scoring_rule_input" style="display: none;">
+
+                <br>
+
+                <button type="submit">Apply Voting Rule</button>
+            </form>
+            <div id="votingRulesMessages"></div>
+        </div>
+
+        <!-- Make File Strict and Complete Section -->
+        <div class="makeFileStrict-container section-container">
+            <form method="post" action="/make_file_complete_strict" id="makeFileCompleteStrictForm">
+                <h1>Make File Complete and Strict</h1>
+                <button type="submit">Make File Complete and Strict</button>
+            </form>
+            <div id="strictCompleteMessages"></div>
+        </div>
+    </div>
+
+    <!-- Fixed Table Section -->
+    <div id="fixedTable" class="section-container">
+        <h1>Fixed Table</h1>
+
+    </div>
+
+    <!-- Distortion Section -->
+    <div class="distortion-container section-container">
+        <form method="post" action="/distortion" id="distortionForm">
+            <h1>Distortion</h1>
+            <label for="distortion_type">Distortion Type:</label>
+            <select name="distortion_type" id="distortion_type" required>
+                <option value="deterministic">Deterministic</option>
+                <option value="randomize">Randomize</option>
+            </select>
+
+            <br>
+
+            <label for="k_value" id="k_value_label" style="display: none;">k Value:</label>
+            <input type="number" name="k_value" id="k_value" style="display: none;">
+
+            <br>
+
+            <button type="submit">Apply Distortion</button>
+        </form>
+        <div id="distortionMessages"></div>
+    </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // File Handler form submission
+        document.getElementById('fileForm').addEventListener('submit', function (event) {
+            event.preventDefault();
+            var formData = new FormData(this);
+            fetch('/handle_file', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('fileHandlerMessages').innerText = data.message;
+            });
+        });
+
+        // Value Generation form submission
+        document.getElementById('valueForm').addEventListener('submit', function (event) {
+            event.preventDefault();
+            var formData = new FormData(this);
+            fetch('/value_generation', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('valueGenerationMessages').innerText = data.message;
+
+                // Check if the 'data' property exists in the response
+                if ('data' in data) {
+                    // Update the fixed table content here using data
+                    document.getElementById('fixedTable').innerText = 'Generated values: ' + data.data;
+                }
+            });
+        });
+
+        // Voting Rules form submission
+        document.getElementById('votingRulesForm').addEventListener('submit', function (event) {
+            event.preventDefault();
+            var formData = new FormData(this);
+            fetch('/voting_rules', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('votingRulesMessages').innerText = data.message;
+            });
+        });
+
+        // Make File Complete and Strict form submission
+        document.getElementById('makeFileCompleteStrictForm').addEventListener('submit', function (event) {
+            event.preventDefault();
+            fetch('/make_file_complete_strict', {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('strictCompleteMessages').innerText = data.message;
+            });
+        });
+
+        // Show/hide k-Approval input based on the selected voting rule
+        document.getElementById('voting_rule_choices').addEventListener('change', function () {
+            var kApprovalLabel = document.getElementById('k_approval_label');
+            var kApprovalInput = document.getElementById('k_approval_value');
+            if (this.value === 'k_approval_rule') {
+                kApprovalLabel.style.display = 'block';
+                kApprovalInput.style.display = 'block';
+            } else {
+                kApprovalLabel.style.display = 'none';
+                kApprovalInput.style.display = 'none';
+            }
+        });
+
+        // Show/hide scoring rule input based on the selected voting rule
+        document.getElementById('voting_rule_choices').addEventListener('change', function () {
+            var scoringRuleLabel = document.getElementById('scoring_rule_label');
+            var scoringRuleInput = document.getElementById('scoring_rule_input');
+            if (this.value === 'scoring_rule') {
+                scoringRuleLabel.style.display = 'block';
+                scoringRuleInput.style.display = 'block';
+            } else {
+                scoringRuleLabel.style.display = 'none';
+                scoringRuleInput.style.display = 'none';
+            }
+        });
+
+        // Show/hide k-value input based on the selected distortion type
+        document.getElementById('distortion_type').addEventListener('change', function () {
+            var kValueLabel = document.getElementById('k_value_label');
+            var kValueInput = document.getElementById('k_value');
+            if (this.value === 'randomize') {
+                kValueLabel.style.display = 'block';
+                kValueInput.style.display = 'block';
+            } else {
+                kValueLabel.style.display = 'none';
+                kValueInput.style.display = 'none';
+            }
+        });
+
+        // Distortion form submission
+        document.getElementById('distortionForm').addEventListener('submit', function (event) {
+            event.preventDefault();
+            var formData = new FormData(this);
+            fetch('/distortion', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('distortionMessages').innerText = data.message;
+            });
+        });
+
+    });
+    </script>
+</body>
+</html>
