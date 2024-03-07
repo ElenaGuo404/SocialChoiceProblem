@@ -34,6 +34,7 @@ class VotingRules:
     Returns:
     str: The candidate who is the winner.
     """
+
     def winner_single(self, scores):
 
         winner_candidate = max(scores, key=scores.get)
@@ -50,6 +51,7 @@ class VotingRules:
     Returns:
     str: The randomly selected winner.
     """
+
     def winner_randomized(self, scores):
         probabilities = self.winner_probability(scores)
 
@@ -67,8 +69,9 @@ class VotingRules:
     Returns:
     dict: A dictionary containing the probabilities of each candidate's winning chance.
     """
+
     def winner_probability(self, scores):
-        total_scores = sum(scores)
+        total_scores = sum(scores.values())
 
         # Calculate the probability for each alternative
         probabilities = {candidate: score / total_scores for candidate, score in scores.items()}
@@ -84,10 +87,11 @@ class VotingRules:
     Returns:
     dict: A dictionary containing the total scores of each candidate.
     """
+
     def scoring_rule(self, weights):
         scores = {}
 
-        for votes, count in self.data_dict.items():
+        for votes, count in self.get_data().items():
             for index, candidate in enumerate(votes):
                 scores[candidate] = scores.get(candidate, 0) + (weights[index] * count)
 
@@ -99,6 +103,7 @@ class VotingRules:
     Returns:
     dict: A dictionary containing the total scores of each candidate.
     """
+
     def plurality_rule(self):
 
         # Use the k_approval_rule with k=1 for plurality
@@ -111,9 +116,10 @@ class VotingRules:
     Returns:
     dict: A dictionary containing the total scores of each candidate.
     """
+
     def borda_rule(self):
 
-        weights_vector = [self.num_candidates - 1 - i for i in range(self.num_candidates)]
+        weights_vector = [self.get_num_alternatives() - 1 - i for i in range(self.get_num_alternatives())]
         borda_points = self.scoring_rule(weights_vector)
 
         return borda_points
@@ -124,9 +130,10 @@ class VotingRules:
     Returns:
     dict: A dictionary containing the total scores of each candidate.
     """
+
     def harmonic_rule(self):
 
-        harmonic_vector = [1 / (i + 1) for i in range(self.num_candidates)]
+        harmonic_vector = [1 / (i + 1) for i in range(self.get_num_alternatives())]
         harmonic_points = self.scoring_rule(harmonic_vector)
 
         return harmonic_points
@@ -137,9 +144,10 @@ class VotingRules:
     Returns:
     dict: A dictionary containing the total scores of each candidate.
     """
+
     def k_approval_rule(self, k):
 
-        weights_vector = [1 if i < k else 0 for i in range(self.num_candidates)]
+        weights_vector = [1 if i < k else 0 for i in range(self.get_num_alternatives())]
         k_approval_points = self.scoring_rule(weights_vector)
 
         return k_approval_points
@@ -150,9 +158,30 @@ class VotingRules:
     Returns:
     dict: A dictionary containing the total scores of each candidate.
     """
+
     def veto_rule(self):
 
         # Use the k_approval_rule with k=m-1 for veto, m is the number of alternatives
-        veto_points = self.k_approval_rule(self.num_candidates - 1)
+        veto_points = self.k_approval_rule(self.get_num_alternatives() - 1)
 
         return veto_points
+
+    """
+    Returns the total number of alternatives.
+
+    Returns:
+    int: The total number of alternatives.
+    """
+
+    def get_num_alternatives(self):
+        return self.num_candidates
+
+    """
+    Returns the dictionary consist of preference voting data.
+
+    Returns:
+    dict: The dictionary of voting data.
+    """
+
+    def get_data(self):
+        return self.data_dict

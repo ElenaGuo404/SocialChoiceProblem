@@ -1,4 +1,5 @@
 from collections import defaultdict
+import random
 
 
 class Distortion:
@@ -17,10 +18,9 @@ class Distortion:
     - distortion(): Calculates the distortion measure comparing the winner's value with the optimal alternative's value.
     """
 
-    def __init__(self, winner, value_list):
-        self.winner = winner
+    def __init__(self, value_list):
         self.value_list = value_list
-        self.total_values = self.value_calculator()
+        self.total_values = self.value_calculator(self.value_list)
 
     """
     Calculates the total values for each alternative based on the provided values from value_list.
@@ -28,10 +28,11 @@ class Distortion:
     Returns:
     dict: A dictionary containing the total values for each alternative.
     """
-    def value_calculator(self):
+
+    def value_calculator(self, value_list):
         total_values = defaultdict(int)
 
-        for ranking_values in self.value_list.values():
+        for ranking_values in value_list.values():
             for values in ranking_values:
                 for alternative, value in values.items():
                     total_values[alternative] += value
@@ -44,10 +45,35 @@ class Distortion:
     Returns:
     float: The distortion value.
     """
-    def distortion(self):
-        winner_value = self.total_values.get(self.winner, 0)
+
+    def distortion(self, winner):
         optimal_alternative = max(self.total_values, key=self.total_values.get)
         optimal_value = self.total_values[optimal_alternative]
+        winner_value = 0
 
-        print('-winner-', self.winner,winner_value, '-optimal-',optimal_alternative,optimal_value)
-        return optimal_value/winner_value
+        # For deterministic, it will output a single winner
+        if isinstance(winner, int):
+            winner_value = self.total_values.get(winner, 0)
+
+        # For Randomized voting rules, it will output a list of probability
+        elif isinstance(winner, dict):
+            for alternative, probability in winner.items():
+                alternative_value = self.total_values.get(alternative, 0)
+                winner_value += probability * alternative_value
+
+        print('-winner-', winner, winner_value, '-optimal-', optimal_alternative, optimal_value)
+        return optimal_value / winner_value
+
+    def average_distortion(self, k, probability_list):
+        distortion_results = defaultdict(list)
+
+        for _ in range(k):
+            winner = random.choices(list(probability_list.keys()), weights=list(probability_list.values()))[0]
+            distortion_value = self.distortion(winner)
+            distortion_results[winner].append(distortion_value)
+
+        all_distortions = [distortion for distortions in distortion_results.values() for distortion in distortions]
+        overall_average_distortion = sum(all_distortions) / len(all_distortions)
+        print(all_distortions)
+
+        return overall_average_distortion

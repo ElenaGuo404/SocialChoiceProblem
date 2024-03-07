@@ -15,10 +15,14 @@ print(value_list)
 file_handler.voting_rule_init()
 vr = VotingRules(file_handler.votes_dict, file_handler.num_alternatives)
 veto = vr.veto_rule()
-winner = vr.winner_single(veto)  # or winner = vr.winner_randomized(veto)
+winner = vr.winner_probability(veto)  # or winner = vr.winner_probability(veto)
 print(veto, 'Winner is', winner)
 
 # Calculating Distortion
-distortion = Distortion(winner, value_list)
-print(distortion.distortion())
+distortion = Distortion(value_list)
+print(distortion.average_distortion(10,winner))
+# print(distortion.distortion(winner))
 
+
+winner2 = vr.winner_single(veto)
+print(distortion.distortion(winner2))
