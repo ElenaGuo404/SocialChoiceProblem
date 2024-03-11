@@ -11,7 +11,7 @@
             align-items: stretch;
             margin: 0;
             height: 100vh;
-            background-color: #f4f4f4;
+            background-color: #E1F8FF;
         }
 
         .container {
@@ -51,14 +51,17 @@
             box-sizing: border-box; /* Include padding and border in the element's total width */
         }
 
-        .fileHandler-container, .valueGeneration-container, .votingRules-container, .makeFileStrict-container, .distortion-container {
+        .fileHandler-container, .valueGeneration-container, .votingRules-container, .distortion-container {
             width: 100%;
             margin-bottom: 20px;
+            background-color: #FFE9F4;
         }
 
-        .makeFileStrict-container {
-            align-self: flex-start;
+        .fileHandler-container {
+            width: 100%;
             margin-left: 50px;
+            align-self: flex-start;
+            text-align: center;
         }
 
         .votingRules-container {
@@ -70,6 +73,27 @@
         .distortion-container {
             align-self: flex-start;
             margin-left: 50px;
+            text-align: center;
+        }
+
+        .details-container {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .input-row {
+            margin-bottom: 10px; /* Adjust the margin as needed */
+        }
+
+        .submit-button {
+            border-radius: 8px;
+            background-color: #4CAF50; /* Green */
+            color: white;
+        }
+
+        .upload-button {
+            background-color: #41B7FF; /* Blue */
+            color: white;
         }
 
 
@@ -81,110 +105,103 @@
         <div class="fileHandler-container section-container">
             <form method="post" action="/handle_file" enctype="multipart/form-data" id="fileForm">
                 <h1>1. File Handler</h1>
-                <label for="file_input">Choose a file:</label>
+                <label for="file_input" >Choose a file:</label>
+                <br> <br>
+                <input type="file" name="file_input" id="file_input"  class="upload-button" required>
                 <br>
-                <input type="file" name="file_input" id="file_input" required>
                 <br>
-                <button type="submit">Upload</button>
+                <button type="submit" class="submit-button">Upload</button>
             </form>
             <div id="fileHandlerMessages"></div>
         </div>
 
-        <!-- Value Generation Section -->
+       <!-- Value Generation Section -->
         <div class="valueGeneration-container section-container">
             <form method="post" action="/value_generation" id="valueForm">
 
                 <h1>2. Value Generation</h1>
-                    <label for="is_missing_zero">Is Missing Zero:</label>
-                    <select name="is_missing_zero" id="is_missing_zero" required>
-                        <option value="True">True</option>
-                        <option value="False">False</option>
-                    </select>
+                <!-- Ask for the number (k) of utility profiles to generate -->
+                <label for="k">How Many Utility Profiles You Want To Generate: </label>
+                <input type="number" name="k" id="k" min="1" required>
+                <br>
+                <br>
 
-                    <br>
+                <div id="labelRow" style="display: none;"> Distribution/Count/Power Parameter</div>
 
-                    <label for="distribution">Distribution:</label>
-                    <select name="distribution" id="distribution" required>
-                        <option value="uniform">Uniform</option>
-                        <option value="exponential">Exponential</option>
-                        <option value="normal">Normal</option>
-                        <option value="power">Power</option>
-                        <option value="gamma">Gamma</option>
-                        <option value="geometric">Geometric</option>
-                    </select>
+                <!-- Generate 6 rows for distribution names, count, and power param inputs -->
+                <div id="distributionDetails" class="details-container">
+                    <!-- JavaScript will add distribution names, count, and power param inputs here based on k -->
+                </div>
+                <br>
 
-                    <br>
+                <label for="power_param" id="power_param_label" style="display: none;">Power Parameter:</label>
+                <input type="number" name="power_param" id="power_param" value="2" style="display: none;">
 
-                    <label for="output_filename">Output Filename:</label>
-                    <input type="text" name="output_filename" id="output_filename" required>
+                <br>
 
-                    <br>
+                <label for="is_missing_zero">Do you want to assign a value of '0' to the all missing alternatives in each voter's preference ranking :</label>
+                <br>
+                <select name="is_missing_zero" id="is_missing_zero" required>
+                    <option value="True">True</option>
+                    <option value="False">False</option>
+                </select>
 
-                    <label for="power_param">Power Parameter:</label>
-                    <input type="number" name="power_param" id="power_param" required>
+                <br> <br>
 
-                    <br>
+                <label for="normalization_method">Normalization Method:</label>
+                <select name="normalization_method" id="normalization_method" required>
+                    <option value="unit_sum">Unit Sum</option>
+                    <option value="unit_range">Unit Range</option>
+                </select>
 
-                    <label for="normalization_method">Normalization Method:</label>
-                    <select name="normalization_method" id="normalization_method" required>
-                        <option value="unit_sum">Unit Sum</option>
-                        <option value="unit_range">Unit Range</option>
-                    </select>
+                <br>
+                <br>
 
-                    <br>
-
-                    <button type="submit">Generate Values</button>
+                <button type="submit" class="submit-button">Generate Values</button>
             </form>
             <div id="valueGenerationMessages"></div>
         </div>
 
-        <!-- Fixed Table Section -->
-        <div id="fixedTable" class="section-container">
-            <h1>Fixed Table</h1>
-
-        </div>
 
     </div>
 
     <div class="flex-container">
-
-        <!-- Make File Strict and Complete Section -->
-        <div class="makeFileStrict-container section-container">
-            <form method="post" action="/make_file_complete_strict" id="makeFileCompleteStrictForm">
-                <h1>3. Make File Complete and Strict</h1>
-                <button type="submit">Make File Complete and Strict</button>
-            </form>
-            <div id="strictCompleteMessages"></div>
-        </div>
 
         <!-- Voting Rules Section -->
         <div class="votingRules-container section-container">
             <form method="post" action="/voting_rules" id="votingRulesForm">
 
                 <h1>4. Voting Rules</h1>
-                <label for="voting_rule_choices">Voting Rule:</label>
-                <select name="voting_rule_choices" id="voting_rule_choices" required>
-                    <option value="plurality_rule">Plurality Rule</option>
-                    <option value="borda_rule">Borda Rule</option>
-                    <option value="harmonic_rule">Harmonic Rule</option>
-                    <option value="k_approval_rule">k-Approval Rule</option>
-                    <option value="veto_rule">Veto Rule</option>
-                    <option value="scoring_rule">Scoring Rule</option>
-                </select>
-
+                <label>Choose Voting Rules:</label>
+                <br> <br>
+                <input type="checkbox" name="voting_rule_choices" value="plurality_rule" id="plurality_rule">
+                <label for="plurality_rule">Plurality Rule</label>
                 <br>
 
-                <label for="k_approval_value" id="k_approval_label" style="display: none;">k-Approval Value:</label>
-                <input type="number" name="k_approval_value" id="k_approval_value" style="display: none;">
-
+                <input type="checkbox" name="voting_rule_choices" value="borda_rule" id="borda_rule">
+                <label for="borda_rule">Borda Rule</label>
                 <br>
 
-                <label for="scoring_rule_input" id="scoring_rule_label" style="display: none;">Scoring Rule Input:</label>
+                <input type="checkbox" name="voting_rule_choices" value="harmonic_rule" id="harmonic_rule">
+                <label for="harmonic_rule">Harmonic Rule</label>
+                <br>
+
+                <input type="checkbox" name="voting_rule_choices" value="k_approval_rule" id="k_approval_rule_checkbox">
+                <label for="k_approval_rule_checkbox">k-Approval Rule</label>
+                <label for="k_approval_value" id="k_approval_label" style="display: none;">k-Approval Value: k=</label>
+                <input type="number" name="k_approval_value" id="k_approval_value" style="display: none;" min="1">
+                <br>
+
+                <input type="checkbox" name="voting_rule_choices" value="scoring_rule" id="scoring_rule_checkbox">
+                <label for="scoring_rule_checkbox">Scoring Rule</label>
+                <label for="scoring_rule_input" id="scoring_rule_label" style="display: none;">Scoring Rule Vector:   [hint: The vector should be in the format of [x,y,z...]]</label>
                 <input type="text" name="scoring_rule_input" id="scoring_rule_input" style="display: none;">
 
                 <br>
 
-                <button type="submit">Apply Voting Rule</button>
+                <br>
+
+                <button type="submit" class="submit-button">Apply Voting Rule</button>
             </form>
             <div id="votingRulesMessages"></div>
         </div>
@@ -199,22 +216,28 @@
                     <option value="randomize">Randomize</option>
                 </select>
 
+                <br> <br>
+
+                <label for="k_value" id="k_value_label" style="display: none;">How many times you would like to run:</label>
+                <input type="number" name="k_value" id="k_value" style="display: none;" min="1">
+
                 <br>
 
-                <label for="k_value" id="k_value_label" style="display: none;">How many times you would liek to run:</label>
-                <input type="number" name="k_value" id="k_value" style="display: none;">
-
-                <br>
-
-                <button type="submit">Apply Distortion</button>
+                <button type="submit" class="submit-button">Apply Distortion</button>
             </form>
             <div id="distortionMessages"></div>
+
+<!--            <br>-->
+<!--            <canvas id="distortionChart" width="400" height="200"></canvas>-->
         </div>
-    </div>>
+
+    </div>
 
 
     <script>
+
     document.addEventListener('DOMContentLoaded', function () {
+
         // File Handler form submission
         document.getElementById('fileForm').addEventListener('submit', function (event) {
             event.preventDefault();
@@ -225,7 +248,15 @@
             })
             .then(response => response.json())
             .then(data => {
-                document.getElementById('fileHandlerMessages').innerText = data.message;
+                var messageContainer = document.getElementById('fileHandlerMessages');
+
+                // Check if it's an error
+                if (data.error) {
+                    messageContainer.style.color = 'red';  // Set text color to red
+                } else {
+                    messageContainer.style.color = '';  // Reset text color
+                }
+                messageContainer.innerText = data.message;
             });
         });
 
@@ -233,72 +264,187 @@
         document.getElementById('valueForm').addEventListener('submit', function (event) {
             event.preventDefault();
             var formData = new FormData(this);
+
             fetch('/value_generation', {
                 method: 'POST',
                 body: formData
             })
             .then(response => response.json())
             .then(data => {
-                document.getElementById('valueGenerationMessages').innerText = data.message;
+                var messageContainer = document.getElementById('valueGenerationMessages');
 
-                // Check if the 'data' property exists in the response
-                if ('data' in data) {
-                    // Update the fixed table content here using data
-                    document.getElementById('fixedTable').innerText = 'Generated values: ' + data.data;
+                // Check if it's an error
+                if (data.error) {
+                    messageContainer.style.color = 'red';  // Set text color to red
+                } else {
+                    messageContainer.style.color = '';  // Reset text color
                 }
+
+                messageContainer.innerText = data.message;
             });
         });
+
+
+        document.getElementById('k').addEventListener('input', function () {
+            var k = parseInt(this.value);
+            var distributionDetailsContainer = document.getElementById('distributionDetails');
+            var labelRow = document.getElementById('labelRow');
+
+            // Clear existing fields
+            distributionDetailsContainer.innerHTML = '';
+
+            // Fixed distribution names
+            var distributionNames = ['Uniform', 'Normal', 'Exponential', 'Power', 'Gamma', 'Geometric'];
+
+            if (k === 1) {
+                // Display dropdown for k = 1
+                distributionDetailsContainer.innerHTML +=
+                    '<label for="distribution">Distribution:</label>' +
+                    '<select name="distribution" required style="width: 150px;">' +
+                    '<option value="Uniform">Uniform</option>' +
+                    '<option value="Exponential">Exponential</option>' +
+                    '<option value="Normal">Normal</option>' +
+                    '<option value="Power">Power</option>' +
+                    '<option value="Gamma">Gamma</option>' +
+                    '<option value="Geometric">Geometric</option>' +
+                    '</select>';
+
+                // Hide labelRow when k = 1
+                labelRow.style.display = 'none';
+            } else {
+                // Generate rows for distribution names, count, and power param inputs
+                labelRow.style.display = 'block'; // Show labelRow when k > 1
+
+                for (var i = 0; i < distributionNames.length; i++) {
+                    var row = document.createElement('div');
+                    row.classList.add('input-row');
+
+                    var distributionInput = document.createElement('input');
+                    distributionInput.type = 'text';
+                    distributionInput.name = 'distribution_' + i;
+                    distributionInput.value = distributionNames[i];
+                    distributionInput.style.width = '100px'; // Set the width here
+                    distributionInput.readOnly = true;
+                    row.appendChild(distributionInput);
+
+                    var countInput = document.createElement('input');
+                    countInput.type = 'number';
+                    countInput.name = 'count_' + i;
+                    countInput.value = 0; // Default count value
+                    countInput.min = 0; // Min count value
+                    countInput.style.width = '50px'; // Set the width here
+                    row.appendChild(countInput);
+
+                    // Check if the distribution requires power parameter
+                    var powerParamInput = document.createElement('input');
+                    powerParamInput.name = 'power_param_' + i;
+                    powerParamInput.value = 2; // Default power param value
+                    powerParamInput.style.width = '50px'; // Set the width here
+<!--                    powerParamInput.min = 1-->
+
+                    if (['Power', 'Gamma', 'Geometric'].includes(distributionNames[i])) {
+                        powerParamInput.type = 'number';
+                    }else{
+                        powerParamInput.type = 'hidden';
+                    }
+                    row.appendChild(powerParamInput);
+
+
+                    distributionDetailsContainer.appendChild(row);
+
+                    // Append an empty line between rows
+                    distributionDetailsContainer.appendChild(document.createElement('br'));
+                }
+            }
+        });
+
+        // Show/hide power_param input based on the selected distribution type and k value
+        document.getElementById('distributionDetails').addEventListener('change', function (event) {
+            var target = event.target;
+            var powerParamLabel = document.getElementById('power_param_label');
+            var powerParamInput = document.getElementById('power_param');
+            var k = parseInt(document.getElementById('k').value);
+
+            // Check if the changed element is a distribution input
+            if (target.name.startsWith('distribution')) {
+                if (k === 1 && ['Power', 'Gamma', 'Geometric'].includes(target.value)) {
+                    powerParamLabel.style.display = 'block';
+                    powerParamInput.style.display = 'block';
+                } else {
+                    powerParamLabel.style.display = 'none';
+                    powerParamInput.style.display = 'none';
+                }
+            }
+        });
+
 
         // Voting Rules form submission
         document.getElementById('votingRulesForm').addEventListener('submit', function (event) {
             event.preventDefault();
             var formData = new FormData(this);
+
+            // Get all selected voting rules
+            var selectedVotingRules = [];
+            var checkboxes = document.querySelectorAll('.voting-rule-checkbox:checked');
+            checkboxes.forEach(function (checkbox) {
+                selectedVotingRules.push(checkbox.value);
+            });
+
+            // Add the selected voting rules to the FormData
+            selectedVotingRules.forEach(function (rule) {
+                formData.append('voting_rule_choices', rule);
+            });
+
             fetch('/voting_rules', {
                 method: 'POST',
                 body: formData
             })
             .then(response => response.json())
             .then(data => {
-                document.getElementById('votingRulesMessages').innerText = data.message;
+                var messageContainer = document.getElementById('votingRulesMessages');
+
+                // Check if it's an error
+                if (data.error) {
+                    messageContainer.style.color = 'red';  // Set text color to red
+                } else {
+                    messageContainer.style.color = '';  // Reset text color
+                }
+                messageContainer.innerText = data.message;
+
             });
         });
 
-        // Make File Complete and Strict form submission
-        document.getElementById('makeFileCompleteStrictForm').addEventListener('submit', function (event) {
-            event.preventDefault();
-            fetch('/make_file_complete_strict', {
-                method: 'POST'
-            })
-            .then(response => response.json())
-            .then(data => {
-                document.getElementById('strictCompleteMessages').innerText = data.message;
+        // Show/hide k-Approval input and scoring rule input based on the selected voting rule
+        document.querySelectorAll('input[name="voting_rule_choices"]').forEach(function (checkbox) {
+            checkbox.addEventListener('change', function () {
+                var selectedOptions = document.querySelectorAll('input[name="voting_rule_choices"]:checked');
+
+                // Show/hide k-Approval input
+                var kApprovalLabel = document.getElementById('k_approval_label');
+                var kApprovalInput = document.getElementById('k_approval_value');
+                var isKApprovalRuleSelected = Array.from(selectedOptions).some(option => option.value === 'k_approval_rule');
+
+                if (isKApprovalRuleSelected) {
+                    kApprovalLabel.style.display = 'block';
+                    kApprovalInput.style.display = 'block';
+                } else {
+                    kApprovalLabel.style.display = 'none';
+                    kApprovalInput.style.display = 'none';
+                }
+
+                // Show/hide scoring rule input
+                var scoringRuleLabel = document.getElementById('scoring_rule_label');
+                var scoringRuleInput = document.getElementById('scoring_rule_input');
+                var isScoringRuleSelected = Array.from(selectedOptions).some(option => option.value === 'scoring_rule');
+
+                if (isScoringRuleSelected) {
+                    scoringRuleLabel.style.display = 'block';
+                    scoringRuleInput.style.display = 'block';
+                } else {
+                    scoringRuleLabel.style.display = 'none';
+                    scoringRuleInput.style.display = 'none';
+                }
             });
-        });
-
-        // Show/hide k-Approval input based on the selected voting rule
-        document.getElementById('voting_rule_choices').addEventListener('change', function () {
-            var kApprovalLabel = document.getElementById('k_approval_label');
-            var kApprovalInput = document.getElementById('k_approval_value');
-            if (this.value === 'k_approval_rule') {
-                kApprovalLabel.style.display = 'block';
-                kApprovalInput.style.display = 'block';
-            } else {
-                kApprovalLabel.style.display = 'none';
-                kApprovalInput.style.display = 'none';
-            }
-        });
-
-        // Show/hide scoring rule input based on the selected voting rule
-        document.getElementById('voting_rule_choices').addEventListener('change', function () {
-            var scoringRuleLabel = document.getElementById('scoring_rule_label');
-            var scoringRuleInput = document.getElementById('scoring_rule_input');
-            if (this.value === 'scoring_rule') {
-                scoringRuleLabel.style.display = 'block';
-                scoringRuleInput.style.display = 'block';
-            } else {
-                scoringRuleLabel.style.display = 'none';
-                scoringRuleInput.style.display = 'none';
-            }
         });
 
         // Show/hide k-value input based on the selected distortion type
@@ -324,11 +470,21 @@
             })
             .then(response => response.json())
             .then(data => {
-                document.getElementById('distortionMessages').innerText = data.message;
+                var messageContainer = document.getElementById('distortionMessages');
+
+                // Check if it's an error
+                if (data.error) {
+                    messageContainer.style.color = 'red';  // Set text color to red
+                } else {
+                    messageContainer.style.color = '';  // Reset text color
+                }
+                messageContainer.innerText = data.message;
+
             });
         });
 
     });
     </script>
+
 </body>
 </html>

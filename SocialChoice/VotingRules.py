@@ -35,7 +35,7 @@ class VotingRules:
     str: The candidate who is the winner.
     """
 
-    def winner_single(self, scores):
+    def winner_determinstic(self, scores):
 
         winner_candidate = max(scores, key=scores.get)
         winner_score = scores[winner_candidate]
