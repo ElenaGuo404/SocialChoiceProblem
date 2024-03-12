@@ -480,11 +480,83 @@
                 }
                 messageContainer.innerText = data.message;
 
+                // Check if data contains a CSV file path
+<!--                if (data.csvFilePath) {-->
+<!--                    // Fetch and render the chart-->
+<!--                    fetch(data.csvFilePath)-->
+<!--                        .then(response => response.text())-->
+<!--                        .then(csvData => {-->
+<!--                            renderDistortionChart(csvData);-->
+<!--                        })-->
+<!--                        .catch(error => console.error('Error fetching CSV file:', error));-->
+<!--                }-->
             });
         });
 
+        // Function to render the line chart
+        function renderDistortionChart(csvData) {
+            var lines = csvData.trim().split('\n');
+            var labels = lines[0].split(',').slice(1); // Extract labels (voting rules)
+            var datasets = [];
+
+            for (var i = 1; i < lines.length; i++) {
+                var values = lines[i].split(',');
+                var rule = values[0];
+                var data = values.slice(1).map(parseFloat);
+
+                datasets.push({
+                    label: rule,
+                    data: data,
+                    borderColor: getRandomColor(),
+                    fill: false,
+                });
+            }
+
+            var ctx = document.getElementById('distortionChart').getContext('2d');
+            var chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: datasets,
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    legend: {
+                        display: true,
+                    },
+                    scales: {
+                        xAxes: [{
+                            scaleLabel: {
+                                display: true,
+                                labelString: 'Distribution',
+                            },
+                        }],
+                        yAxes: [{
+                            scaleLabel: {
+                                display: true,
+                                labelString: 'Distortion Value',
+                            },
+                        }],
+                    },
+                },
+            });
+        }
+
+        // Function to generate a random color for chart lines
+        function getRandomColor() {
+            var letters = '0123456789ABCDEF';
+            var color = '#';
+            for (var i = 0; i < 6; i++) {
+                color += letters[Math.floor(Math.random() * 16)];
+            }
+            return color;
+        }
+
     });
     </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 </body>
 </html>

@@ -188,12 +188,12 @@ def apply_distortion():
     with open(csv_file_path, 'w', newline='') as csv_file:
         writer = csv.writer(csv_file)
         # Write header row
-        writer.writerow(['Distribution'] + distribution_list)
+        writer.writerow(['Distribution/Voting Rules'] + distribution_list)
         # Write data rows
         for voting_rule, distortions in distortion_list.items():
             writer.writerow([voting_rule] + distortions)
 
-    return jsonify({'error': False, 'message': f' Average Distortion Value : {average_distortion}'})
+    return jsonify({'error': False, 'csvFilePath': csv_file_path, 'message': f' Average Distortion Value : {average_distortion}'})
 
 
 if __name__ == '__main__':
