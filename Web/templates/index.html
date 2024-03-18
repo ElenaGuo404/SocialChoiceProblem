@@ -31,7 +31,8 @@
             display: flex;
             justify-content: space-between;
             align-items: stretch;
-            margin: 10px;
+            flex-direction: column;
+            margin: 0 auto;
         }
 
         .left-container {
@@ -58,21 +59,16 @@
         }
 
         .fileHandler-container {
-            width: 100%;
-            margin-left: 50px;
             align-self: flex-start;
             text-align: center;
         }
 
         .votingRules-container {
-            width: 100%;
-            margin-left: 50px;
             align-self: flex-start;
         }
 
         .distortion-container {
             align-self: flex-start;
-            margin-left: 50px;
             text-align: center;
         }
 
@@ -105,7 +101,7 @@
         <div class="fileHandler-container section-container">
             <form method="post" action="/handle_file" enctype="multipart/form-data" id="fileForm">
                 <h1>1. File Handler</h1>
-                <label for="file_input" >Choose a file:</label>
+                <label for="file_input" >Choose a file from your local computer:</label>
                 <br> <br>
                 <input type="file" name="file_input" id="file_input"  class="upload-button" required>
                 <br>
@@ -163,15 +159,15 @@
         </div>
 
 
-    </div>
+<!--    </div>-->
 
-    <div class="flex-container">
+<!--    <div class="flex-container">-->
 
         <!-- Voting Rules Section -->
         <div class="votingRules-container section-container">
             <form method="post" action="/voting_rules" id="votingRulesForm">
 
-                <h1>4. Voting Rules</h1>
+                <h1>3. Voting Rules</h1>
                 <label>Choose Voting Rules:</label>
                 <br> <br>
                 <input type="checkbox" name="voting_rule_choices" value="plurality_rule" id="plurality_rule">
@@ -209,7 +205,7 @@
         <!-- Distortion Section -->
         <div class="distortion-container section-container">
             <form method="post" action="/distortion" id="distortionForm">
-                <h1>5. Distortion</h1>
+                <h1>4. Distortion</h1>
                 <label for="distortion_type">Distortion Type:</label>
                 <select name="distortion_type" id="distortion_type" required>
                     <option value="deterministic">Deterministic</option>
@@ -454,6 +450,7 @@
             if (this.value === 'randomize') {
                 kValueLabel.style.display = 'block';
                 kValueInput.style.display = 'block';
+                kValueInput.style.margin = 'auto';
             } else {
                 kValueLabel.style.display = 'none';
                 kValueInput.style.display = 'none';

@@ -36,7 +36,7 @@ class ValueGeneration:
         self.missing_alternatives = set()
         self.value_list = defaultdict(list)
 
-    def generate_k_instance(self, distribution_list, is_missing_zero):
+    def generate_k_instances(self, distribution_list, is_missing_zero):
         k_list = defaultdict(list)
 
         for distribution, (count, power_param) in distribution_list.items():

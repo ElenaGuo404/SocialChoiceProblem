@@ -79,7 +79,7 @@ def value_generation():
 
     # Process the values using ValueGeneration
     value_generation = ValueGeneration(obj1.votes_dict, obj1.get_num_alternatives())
-    k_list = value_generation.generate_k_instance(distribution_list, is_missing_zero)
+    k_list = value_generation.generate_k_instances(distribution_list, is_missing_zero)
 
     if normalization_method == 'unit_sum':
         value_list = value_generation.unit_sum_normalization(k_list)
