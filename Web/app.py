@@ -1,5 +1,6 @@
 import copy
 import csv
+import time
 from collections import defaultdict
 from statistics import mean
 
@@ -30,6 +31,7 @@ def index():
 def handle_file():
     global obj1, filename
     file = request.files['file_input']
+
     if file:
         filename = file.filename
         file.save(filename)
@@ -87,7 +89,6 @@ def value_generation():
         value_list = value_generation.unit_range_normalization(k_list)
     else:
         return jsonify({'error': True, 'message': 'Invalid normalization method.'})
-    print(value_list)
 
     return jsonify({'error': False, 'message': f'Data Generated for {k} instances!', 'data': f'{value_list}'})
 
@@ -97,7 +98,6 @@ def apply_voting_rules():
     global obj1, value_generation, voting_rules, total_scores
     if obj1 is None:
         return jsonify({'error': True, 'message': 'File not processed. Please upload a file!'})
-
     obj2 = copy.deepcopy(obj1)
 
     # Automatically make file complete and strict before applying voting rules
@@ -146,7 +146,6 @@ def apply_distortion():
     if value_list is None or total_scores is None:
         return jsonify({'error': True, 'message': 'Value generation or voting rules not applied. Please complete '
                                                   'previous steps.'})
-
     # Get parameters from the form
     distortion_type = request.form['distortion_type']
     average_distortion = {}
@@ -193,7 +192,8 @@ def apply_distortion():
         for voting_rule, distortions in distortion_list.items():
             writer.writerow([voting_rule] + distortions)
 
-    return jsonify({'error': False, 'csvFilePath': csv_file_path, 'message': f' Average Distortion Value : {average_distortion}'})
+    return jsonify(
+        {'error': False, 'csvFilePath': csv_file_path, 'message': f' Average Distortion Value : {average_distortion}'})
 
 
 if __name__ == '__main__':

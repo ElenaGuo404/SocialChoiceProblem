@@ -25,6 +25,9 @@ class Distortion:
     """
     Calculates the total values for each alternative based on the provided values from value_list.
     
+    Parameters:
+    
+    
     Returns:
     dict: A dictionary containing the total values for each alternative.
     """
@@ -41,6 +44,9 @@ class Distortion:
 
     """
     Calculates the distortion measure by comparing the winner's total value with the optimal alternative's total value.
+    
+    Parameters:
+    - winner(int/dict): The winner alternative / the winner alternative probability list
     
     Returns:
     float: The distortion value.
@@ -64,6 +70,18 @@ class Distortion:
         print('-winner-', winner, winner_value, '-optimal-', optimal_alternative, optimal_value)
         return optimal_value / winner_value
 
+
+    """
+    For given probability list, generate winner for multiple trials and for each winner, run the distortion and get average distortion across them.
+    
+    Parameters:
+    - k(int): User input, indicating number of trails 
+    - probability_list(dict): a dictionary containing alternative as key and their probability of getting selected as values.
+    
+    Returns:
+    float: The average distortion across trials.  
+    
+    """
     def average_distortion(self, k, probability_list):
         distortion_results = defaultdict(list)
 

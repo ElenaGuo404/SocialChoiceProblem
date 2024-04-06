@@ -18,6 +18,7 @@ class ValueGeneration:
     - value_list (defaultdict): A defaultdict storing generated values for each ranking.
 
     Methods:
+    - generate_k_instances(distribution_list, is_missing_zero): Generate k number of instances for given set of distributions.
     - value_generation(output_filename, distribution, is_missing_zero, power_param=2): Generates values for voting data.
     - assign_values(votes, count, distribution, power_param): Assigns values to alternatives based alternative ranking.
     - generate_random_values(count, distribution, power_param, upper_limit): Generates random values based on a distribution.
@@ -36,15 +37,20 @@ class ValueGeneration:
         self.missing_alternatives = set()
         self.value_list = defaultdict(list)
 
+    """
+    Generate k number of instances for given set of distributions
+    
+    Parameters:
+    - distribution_list(list): A list containing user inputted distributions. 
+    - is_missing_zero (str): Whether missing alternatives should be assigned a value of zero. If False, assign it with random value.
+    """
     def generate_k_instances(self, distribution_list, is_missing_zero):
         k_list = defaultdict(list)
 
         for distribution, (count, power_param) in distribution_list.items():
-            print(distribution, count, power_param)
             instances_for_distribution = []
 
             for _ in range(count):
-                print(distribution)
                 instances_for_distribution.append(self.value_generation(distribution, is_missing_zero, power_param))
 
             k_list.update({distribution: instances_for_distribution})
@@ -101,6 +107,7 @@ class ValueGeneration:
 
                 # Store the generated values for the current ranking
                 value_list[votes].append(values)
+        print(value_list)
         return value_list
 
     """
